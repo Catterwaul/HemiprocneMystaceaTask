@@ -1,5 +1,27 @@
 // MARK: - public
 public extension Task {
+  /// Performs a failure-coalescing operation, returning the `success` value of a
+  /// `Task` instance or a default value.
+  ///
+  /// - Bug: `defaultValue` should be an `@autoclosure`, but it  doesn't work with typed errors.
+  @inlinable static func ?? <Error>(
+    task: Self,
+    defaultValue: () throws(Error) -> Success
+  ) async throws(Error) -> Success {
+    do { return try await task.value }
+    catch { return try defaultValue() }
+  }
+
+  /// Performs a failure-coalescing operation, returning the `success` value of a
+  /// `Task` instance or a default value.
+  @inlinable static func ?? (
+    task: Self,
+    defaultValue: @autoclosure () -> Success
+  ) async -> Success {
+    do { return try await task.value }
+    catch { return defaultValue() }
+  }
+
   /// Modify a success value.
   /// - Parameters:
   ///   - errorResult: An unmodified value, when `value` `throw`s.

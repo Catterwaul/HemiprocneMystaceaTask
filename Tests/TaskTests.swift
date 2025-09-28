@@ -3,6 +3,25 @@ import Testing
 import Thrappture
 
 struct TaskTests {
+  @Test func `?? operator`() async {
+    struct Failure: Error { }
+    let task = Task<String, _> { throw Failure() }
+
+    `non-throwing`: do {
+      let success = "🥇"
+      #expect(await task ?? success == success)
+    }
+
+    `throwing`: do {
+      var error: String {
+        get throws(Failure) { throw .init() }
+      }
+      await #expect(throws: Failure.self) {
+        try await task ?? { try error }
+      }
+    }
+  }
+
   @Test func reduce() async {
     enum Failure: Error { case failure }
     var task = Task<Int, _> { throw Failure.failure }
